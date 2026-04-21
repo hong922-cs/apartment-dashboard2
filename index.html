@@ -120,7 +120,8 @@
                                 <th scope="col" class="px-6 py-3 text-center font-medium text-emerald-700 uppercase tracking-wider whitespace-nowrap">건축년도</th>
                             </tr>
                         </thead>
-                        <tbody id="table-body" class="bg-white divide-y divide-emerald-50">
+                        <!-- divide-y 클래스를 제거하여 줄무늬 배경이 더 깔끔하게 보이도록 함 -->
+                        <tbody id="table-body" class="bg-white">
                             <!-- 자바스크립트를 통해 데이터가 채워집니다 -->
                         </tbody>
                     </table>
@@ -269,7 +270,7 @@
             document.getElementById('dashboard-content').classList.remove('hidden');
         }
 
-        // Chart.js 차트 렌더링 (초록색 테마 적용)
+        // Chart.js 차트 렌더링
         function renderChart(monthlyData) {
             const ctx = document.getElementById('priceChart').getContext('2d');
             
@@ -286,10 +287,10 @@
                     datasets: [{
                         label: '평균 거래금액 (만원)',
                         data: avgPrices,
-                        borderColor: 'rgb(16, 185, 129)', // Tailwind emerald-500
+                        borderColor: 'rgb(16, 185, 129)', 
                         backgroundColor: 'rgba(16, 185, 129, 0.15)',
                         borderWidth: 2,
-                        pointBackgroundColor: 'rgb(5, 150, 105)', // Tailwind emerald-600
+                        pointBackgroundColor: 'rgb(5, 150, 105)', 
                         pointBorderColor: '#fff',
                         pointHoverBackgroundColor: '#fff',
                         pointHoverBorderColor: 'rgb(5, 150, 105)',
@@ -303,9 +304,9 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: 'rgba(6, 78, 59, 0.9)', // Tailwind emerald-900
+                            backgroundColor: 'rgba(6, 78, 59, 0.9)', 
                             titleColor: '#fff',
-                            bodyColor: '#ecfdf5', // emerald-50
+                            bodyColor: '#ecfdf5', 
                             callbacks: {
                                 label: function(context) {
                                     return ' ' + formatKoreanCurrency(context.raw);
@@ -320,7 +321,7 @@
                                 callback: function(value) {
                                     return (value / 10000).toFixed(1) + '억';
                                 },
-                                color: 'rgb(100, 116, 139)' // slate-500
+                                color: 'rgb(100, 116, 139)' 
                             },
                             grid: {
                                 color: '#f1f5f9'
@@ -339,20 +340,27 @@
             });
         }
 
-        // 거래 목록 테이블 렌더링
+        // 거래 목록 테이블 렌더링 (줄무늬, 호버, 5억 이상 강조 추가)
         function renderTable(data) {
             const tbody = document.getElementById('table-body');
             let html = '';
 
-            data.forEach(item => {
+            data.forEach((item, index) => {
+                // 짝수/홀수 행 배경색 지정 (줄무늬 효과)
+                const rowBgClass = index % 2 === 0 ? 'bg-white' : 'bg-emerald-50/40';
+                
+                // 거래금액이 5억(50,000만원) 이상인지 확인 후 글씨 색상 및 두께 설정
+                const isHighPrice = item.price >= 50000;
+                const priceTextClass = isHighPrice ? 'text-red-500 font-extrabold' : 'text-emerald-600 font-bold';
+
                 html += `
-                    <tr class="hover:bg-emerald-50/50 transition-colors">
+                    <tr class="${rowBgClass} hover:!bg-emerald-100 transition-colors duration-200">
                         <td class="px-6 py-4 whitespace-nowrap text-gray-500">${item.date}</td>
                         <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-800">${item.name}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-gray-500">${item.dong}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-gray-500">${item.area}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-gray-500">${item.floor}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right font-bold text-emerald-600">${formatKoreanCurrency(item.price)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right ${priceTextClass}">${formatKoreanCurrency(item.price)}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center text-gray-500">${item.year}</td>
                     </tr>
                 `;
