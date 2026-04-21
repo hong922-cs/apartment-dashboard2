@@ -14,7 +14,7 @@
     <style>
         /* 커스텀 스크롤바 스타일 */
         .custom-scrollbar::-webkit-scrollbar {
-            width: 6px; /* 모바일을 위해 살짝 얇게 조정 */
+            width: 6px; 
             height: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
@@ -67,14 +67,13 @@
             <span class="block sm:inline" id="error-text"></span>
         </div>
 
-        <!-- 대시보드 컨텐츠 (2단 레이아웃 그리드 적용) -->
+        <!-- 대시보드 컨텐츠 -->
         <div id="dashboard-content" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
             
-            <!-- [왼쪽 컬럼]: 요약 카드, 차트, TOP 5 랭킹 (7칸 차지) -->
+            <!-- [왼쪽 컬럼]: 요약 카드, 차트, TOP 5 랭킹 -->
             <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-4 sm:gap-6">
                 
                 <!-- 1. 요약 카드 섹션 -->
-                <!-- 모바일: 1열 (grid-cols-1), 태블릿: 2열 (sm:grid-cols-2), 데스크톱: 4열 (xl:grid-cols-4) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
                     <!-- 전체 거래 건수 -->
                     <div class="bg-white rounded-xl shadow-sm border border-emerald-100 p-4 sm:p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
@@ -150,7 +149,6 @@
                     <h2 class="text-base sm:text-lg font-bold text-emerald-900 mb-3 sm:mb-4 flex items-center gap-2">
                         <span>👑</span> 비싼 아파트 TOP 5
                     </h2>
-                    <!-- 모바일/태블릿: 1열, 데스크톱(xl): 2열 -->
                     <div id="top5-list" class="grid grid-cols-1 xl:grid-cols-2 gap-2 sm:gap-3">
                         <!-- 자바스크립트를 통해 랭킹 데이터가 채워집니다 -->
                     </div>
@@ -158,7 +156,7 @@
 
             </div>
 
-            <!-- [오른쪽 컬럼]: 상세 거래 목록 테이블 (5칸 차지) -->
+            <!-- [오른쪽 컬럼]: 상세 거래 목록 테이블 -->
             <div class="lg:col-span-5 xl:col-span-4 bg-white rounded-xl shadow-sm border border-emerald-100 flex flex-col lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)] min-h-[400px] sm:min-h-[500px]">
                 
                 <!-- 테이블 헤더 (고정) -->
@@ -189,6 +187,38 @@
         </div>
     </div>
 
+    <!-- 팝업(모달) 영역 -->
+    <div id="detail-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 opacity-0 transition-opacity duration-300">
+        <!-- 배경 어둡게 -->
+        <div id="modal-backdrop" class="absolute inset-0 bg-emerald-900/40 backdrop-blur-sm cursor-pointer"></div>
+        
+        <!-- 팝업 컨텐츠 창 -->
+        <div class="bg-white rounded-2xl shadow-2xl border border-emerald-100 w-full max-w-sm relative z-10 transform scale-95 transition-transform duration-300 flex flex-col overflow-hidden" id="modal-container">
+            
+            <!-- 팝업 헤더 -->
+            <div class="px-6 py-4 border-b border-emerald-50 bg-emerald-50/50 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-emerald-900 flex items-center gap-2">
+                    <span>🏢</span> 상세 거래 정보
+                </h3>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors p-1 rounded-full hover:bg-red-50">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- 팝업 바디 (데이터가 채워지는 곳) -->
+            <div class="p-6 space-y-4" id="modal-content">
+                <!-- Javascript로 동적 렌더링 -->
+            </div>
+            
+            <!-- 팝업 푸터 -->
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 text-center sm:text-right">
+                <button onclick="closeModal()" class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 shadow-sm transition-colors">
+                    확인
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTEIynUdsh--Y6W69RDWfl5qRfTRIaOpMMQh9a45_yany5jkPN1wlHfMy07ukrUQAJorruQ8CN4Fuia/pub?gid=2058913286&single=true&output=csv";
 
@@ -216,6 +246,7 @@
 
         let globalData = [];
         let chartInstance = null;
+        let currentTableData = []; // 테이블 행 클릭 시 사용할 현재 표시중인 데이터 배열
 
         function initDashboard() {
             Papa.parse(CSV_URL, {
@@ -232,6 +263,16 @@
                 },
                 error: function(err) {
                     showError("데이터를 불러오는 중 오류가 발생했습니다: " + err.message);
+                }
+            });
+
+            // 모달 백드롭(배경) 클릭 시 닫기 이벤트 연동
+            document.getElementById('modal-backdrop').addEventListener('click', closeModal);
+            
+            // ESC 키 누를 때 모달 닫기
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Escape") {
+                    closeModal();
                 }
             });
         }
@@ -505,6 +546,9 @@
         }
 
         function renderTable(data) {
+            // 클릭 이벤트를 위해 현재 렌더링된 데이터를 전역 변수에 저장합니다.
+            currentTableData = data; 
+            
             const tbody = document.getElementById('table-body');
             let html = '';
 
@@ -513,13 +557,14 @@
                 const isHighPrice = item.price >= 50000;
                 const priceTextClass = isHighPrice ? 'text-red-500 font-extrabold' : 'text-emerald-600 font-bold';
 
+                // tr 태그에 cursor-pointer와 onclick 이벤트를 추가했습니다.
                 html += `
-                    <tr class="${rowBgClass} hover:!bg-emerald-100 transition-colors duration-200">
-                        <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap">
+                    <tr class="${rowBgClass} hover:!bg-emerald-100 transition-colors duration-200 cursor-pointer" onclick="openModal(${index})">
+                        <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap pointer-events-none">
                             <div class="text-[10px] sm:text-xs text-gray-500 mb-0.5">${item.date}</div>
                             <div class="font-medium text-gray-800 text-xs sm:text-sm truncate max-w-[150px] sm:max-w-[200px]">${item.name} <span class="text-[10px] sm:text-xs text-gray-400 font-normal">(${item.dong})</span></div>
                         </td>
-                        <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-right">
+                        <td class="px-3 sm:px-4 py-2 sm:py-3 whitespace-nowrap text-right pointer-events-none">
                             <div class="${priceTextClass} text-sm sm:text-base mb-0.5">${formatKoreanCurrency(item.price)}</div>
                             <div class="text-[10px] sm:text-xs text-gray-500">${item.area}㎡ · ${item.floor}층 · ${item.year}년식</div>
                         </td>
@@ -528,6 +573,73 @@
             });
 
             tbody.innerHTML = html;
+        }
+
+        // --- 팝업(모달) 관련 스크립트 ---
+
+        function openModal(index) {
+            const item = currentTableData[index];
+            const modal = document.getElementById('detail-modal');
+            const content = document.getElementById('modal-content');
+            const container = document.getElementById('modal-container');
+            
+            // 모달 내부에 들어갈 상세 정보 HTML
+            content.innerHTML = `
+                <div class="flex flex-col items-center justify-center mb-6 pt-2">
+                    <div class="text-3xl font-black text-emerald-700">${formatKoreanCurrency(item.price)}</div>
+                    <div class="text-sm font-medium text-emerald-600/80 mt-1">${item.date} 거래 완료</div>
+                </div>
+                <div class="space-y-4 bg-emerald-50/30 p-4 rounded-xl border border-emerald-50">
+                    <div class="flex justify-between items-end border-b border-gray-200/60 pb-2">
+                        <span class="text-gray-500 text-xs sm:text-sm font-medium">아파트명</span>
+                        <span class="font-bold text-gray-900 text-sm sm:text-base">${item.name}</span>
+                    </div>
+                    <div class="flex justify-between items-end border-b border-gray-200/60 pb-2">
+                        <span class="text-gray-500 text-xs sm:text-sm font-medium">법정동</span>
+                        <span class="font-bold text-gray-800 text-sm sm:text-base">${item.dong}</span>
+                    </div>
+                    <div class="flex justify-between items-end border-b border-gray-200/60 pb-2">
+                        <span class="text-gray-500 text-xs sm:text-sm font-medium">전용면적</span>
+                        <span class="font-bold text-gray-800 text-sm sm:text-base">${item.area} ㎡</span>
+                    </div>
+                    <div class="flex justify-between items-end border-b border-gray-200/60 pb-2">
+                        <span class="text-gray-500 text-xs sm:text-sm font-medium">해당 층</span>
+                        <span class="font-bold text-gray-800 text-sm sm:text-base">${item.floor}층</span>
+                    </div>
+                    <div class="flex justify-between items-end">
+                        <span class="text-gray-500 text-xs sm:text-sm font-medium">건축년도</span>
+                        <span class="font-bold text-gray-800 text-sm sm:text-base">${item.year}년</span>
+                    </div>
+                </div>
+            `;
+            
+            // 모달 보이기 & 애니메이션 적용
+            modal.classList.remove('hidden');
+            // 브라우저 렌더링 틱 지연 후 opacity 및 scale 클래스 토글 (부드러운 등장 효과)
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                container.classList.remove('scale-95');
+                container.classList.add('scale-100');
+            }, 10);
+            
+            // 모달 열려있을 때 뒷배경 스크롤 방지
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('detail-modal');
+            const container = document.getElementById('modal-container');
+            
+            // 닫기 애니메이션 적용
+            modal.classList.add('opacity-0');
+            container.classList.remove('scale-100');
+            container.classList.add('scale-95');
+            
+            // 애니메이션(300ms) 끝난 후 완전 숨김
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = ''; // 스크롤 원복
+            }, 300);
         }
 
         document.addEventListener('DOMContentLoaded', initDashboard);
