@@ -63,25 +63,33 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- 전체 거래 건수 -->
                 <div class="bg-white rounded-xl shadow-sm border border-emerald-100 p-6 flex flex-col hover:shadow-md transition-shadow">
-                    <span class="text-sm font-medium text-emerald-600 mb-1">전체 거래 건수</span>
-                    <span id="summary-count" class="text-3xl font-bold text-emerald-900">0</span>
+                    <span class="text-sm font-medium text-emerald-600 mb-1 flex items-center gap-1">
+                        <span class="text-base">🏠</span> 전체 거래 건수
+                    </span>
+                    <span id="summary-count" class="text-3xl font-bold text-emerald-900 mt-1">0</span>
                     <span class="text-xs text-gray-400 mt-2">수집된 전체 데이터 기준</span>
                 </div>
                 <!-- 평균 거래가격 -->
                 <div class="bg-white rounded-xl shadow-sm border border-emerald-100 p-6 flex flex-col hover:shadow-md transition-shadow">
-                    <span class="text-sm font-medium text-emerald-600 mb-1">평균 거래가격</span>
-                    <span id="summary-avg" class="text-2xl font-bold text-emerald-600">0</span>
+                    <span class="text-sm font-medium text-emerald-600 mb-1 flex items-center gap-1">
+                        <span class="text-base">💰</span> 평균 거래가격
+                    </span>
+                    <span id="summary-avg" class="text-2xl font-bold text-emerald-600 mt-1">0</span>
                 </div>
                 <!-- 최고 거래가격 -->
                 <div class="bg-white rounded-xl shadow-sm border border-emerald-100 p-6 flex flex-col hover:shadow-md transition-shadow">
-                    <span class="text-sm font-medium text-emerald-600 mb-1">최고 거래가격</span>
-                    <span id="summary-max" class="text-2xl font-bold text-emerald-700">0</span>
+                    <span class="text-sm font-medium text-emerald-600 mb-1 flex items-center gap-1">
+                        <span class="text-base">📈</span> 최고 거래가격
+                    </span>
+                    <span id="summary-max" class="text-2xl font-bold text-emerald-700 mt-1">0</span>
                     <span id="summary-max-detail" class="text-xs text-gray-500 mt-1 truncate">-</span>
                 </div>
                 <!-- 최저 거래가격 -->
                 <div class="bg-white rounded-xl shadow-sm border border-emerald-100 p-6 flex flex-col hover:shadow-md transition-shadow">
-                    <span class="text-sm font-medium text-emerald-600 mb-1">최저 거래가격</span>
-                    <span id="summary-min" class="text-2xl font-bold text-emerald-400">0</span>
+                    <span class="text-sm font-medium text-emerald-600 mb-1 flex items-center gap-1">
+                        <span class="text-base">📉</span> 최저 거래가격
+                    </span>
+                    <span id="summary-min" class="text-2xl font-bold text-emerald-400 mt-1">0</span>
                     <span id="summary-min-detail" class="text-xs text-gray-500 mt-1 truncate">-</span>
                 </div>
             </div>
